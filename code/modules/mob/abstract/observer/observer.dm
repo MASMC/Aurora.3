@@ -345,16 +345,26 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 
 // This is the ghost's follow verb with an argument
 /mob/abstract/observer/proc/ManualFollow(var/atom/movable/target)
-	if(!target || target == following || target == src)
+	if (!istype(target))
 		return
 
-	stop_following()
-	following = target
-	moved_event.register(following, src, /atom/movable/proc/move_to_destination)
-	destroyed_event.register(following, src, /mob/abstract/observer/proc/stop_following)
+	var/icon/I = icon(target.icon, target.icon_state, target.dir)
 
-	to_chat(src, "<span class='notice'>Now following \the [following]</span>")
-	move_to_destination(following, following.loc, following.loc)
+	var/orbitsize = (I.Width() + I.Height()) * 0.5
+	orbitsize -= (orbitsize/world.icon_size) * (world.icon_size*0.25)
+
+	if (orbiting && orbiting.orbiting != target)
+		to_chat(src, "<span class='notice'>Now orbiting [target].</span>")
+
+	// Ignoring the entire check for what orbit type, because it hasn't been implemented
+	// nor do we want to
+	var/rot_seg = 36 // 360/10, smooth enough aproximation of a circle
+
+	orbit(target, orbitsize, FALSE, 20, rot_seg)
+
+/mob/abstract/observer/orbit()
+	setDir(2) // Reset dir so the right directional sprites show up
+	..()
 
 /mob/abstract/observer/proc/stop_following()
 	if(following)
